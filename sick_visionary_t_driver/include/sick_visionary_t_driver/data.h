@@ -206,15 +206,15 @@ private:
 		}
 		ROS_ASSERT(i==16);
 		
-		cameraParams_.fx = ds.get<double>("CameraMatrix.FX");
-		cameraParams_.fy = ds.get<double>("CameraMatrix.FY");
-		cameraParams_.cx = ds.get<double>("CameraMatrix.CX");
-		cameraParams_.cy = ds.get<double>("CameraMatrix.CY");
+		cameraParams_.fx = ds.get<double>("CameraMatrix.FX", 0.0);
+		cameraParams_.fy = ds.get<double>("CameraMatrix.FY", 0.0);
+		cameraParams_.cx = ds.get<double>("CameraMatrix.CX", 0.0);
+		cameraParams_.cy = ds.get<double>("CameraMatrix.CY", 0.0);
 		
-		cameraParams_.k1 = ds.get<double>("CameraDistortionParams.K1");
-		cameraParams_.k2 = ds.get<double>("CameraDistortionParams.K2");
+		cameraParams_.k1 = ds.get<double>("CameraDistortionParams.K1", 0.0);
+		cameraParams_.k2 = ds.get<double>("CameraDistortionParams.K2", 0.0);
 		
-		cameraParams_.f2rc = ds.get<double>("FocalToRayCross");
+		cameraParams_.f2rc = ds.get<double>("FocalToRayCross", 0.0);
 	
         // extract data format from XML (although it does not change)
         std::string data_type;
