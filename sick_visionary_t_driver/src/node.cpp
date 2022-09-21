@@ -258,21 +258,25 @@ int main(int argc, char **argv) {
 	
 	//default parameters
 	std::string remote_device_ip="192.168.1.10";
+       std::string remote_device_port_control="2112";
+       std::string remote_device_port_streaming="2113";
 	g_frame_id = "camera";
 	
 	ros::param::get("~remote_device_ip", remote_device_ip);
+       ros::param::get("~remote_device_port_control", remote_device_port_control);
+       ros::param::get("~remote_device_port_streaming", remote_device_port_streaming);
 	ros::param::get("~frame_id", g_frame_id);
 	ros::param::get("~prevent_frame_skipping", g_publish_all);
-	
-	Driver_3DCS::Control control(io_service, remote_device_ip);
+
+	Driver_3DCS::Control control(io_service, remote_device_ip, remote_device_port_control);
 	r=control.open();
 	ROS_ASSERT(r);
 	r=control.initStream();
 	ROS_ASSERT(r);
 	
 	boost::thread thr(boost::bind(&boost::asio::io_service::run, &io_service));
-	
-	Driver_3DCS::Streaming device(io_service, remote_device_ip);
+
+	Driver_3DCS::Streaming device(io_service, remote_device_ip, remote_device_port_streaming);
 	device.getSignal().connect( boost::bind(&on_frame, _1) );
 	r=device.openStream();
 	ROS_ASSERT(r);
