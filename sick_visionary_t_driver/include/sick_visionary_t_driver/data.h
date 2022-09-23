@@ -249,7 +249,7 @@ private:
     void getData(const char *data, const size_t size) {
         rcpputils::assert_true(size >= 14);
         if (size < 14) {
-            RCLCPP_WARN("malformed data (1): %d<14", (int) size);
+            RCLCPP_WARN(get_logger(), "malformed data (1): %d<14", (int) size);
             return;
         }
         const size_t numBytesDistance = (numBytesPerDistanceValue_ > 0) ? distance_.total() * numBytesPerDistanceValue_
