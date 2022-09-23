@@ -107,7 +107,7 @@ public:
         boost::system::error_code error = boost::asio::error::host_not_found;
         socket_.connect(ep, error);
         if (error) {
-            ROS_ERROR("connecting failed");
+            RCLCPP_ERROR(get_logger(), "connecting failed");
             return false;//throw boost::system::system_error(error);
         }
 
@@ -150,6 +150,10 @@ protected:
 
 private:
 
+    static rclcpp::Logger get_logger() {
+        return rclcpp::get_logger("TCP_Session");
+    }
+
     /// called on incoming data --> decides if an error occured or calls handler
     void handle_read(const boost::system::error_code &error,
                      size_t bytes_transferred) {
@@ -158,7 +162,7 @@ private:
         if (!error) {
             on_data_(data_, bytes_transferred, this);
         } else {
-            ROS_ERROR("error while reading from socket");
+            RCLCPP_ERROR(get_logger(), "error while reading from socket");
             delete this;
         }
 
@@ -174,7 +178,7 @@ private:
         //boost::mutex::scoped_lock lock(mtx_);
 
         if (error) {
-            ROS_ERROR("error while writing to socket");
+            RCLCPP_ERROR(get_logger(), "error while writing to socket");
             delete this;
         }
     }
