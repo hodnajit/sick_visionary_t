@@ -1,23 +1,23 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>sick_visionary_t_driver</name>
   <version>0.0.2</version>
   <description>Open source driver for the SICK Visionary-T 3D TOF camera.</description>
-
   <license>Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)</license>
-
-  <url type="website">http://wiki.ros.org/sick_visionary_t_driver</url>
-
   <maintainer email="joshua.hampp@ipa.fraunhofer.de">Joshua Hampp</maintainer>
   <maintainer email="marco.dierschke@sick.de">Marco Dierschke</maintainer>
+  <maintainer email="t.rybecky@gmail.com">Tomas Rybecky</maintainer>
   <author email="joshua.hampp@ipa.fraunhofer.de">Joshua Hampp</author>
+  <url type="website">http://wiki.ros.org/sick_visionary_t_driver</url>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
   <depend>cv_bridge</depend>
   <depend>image_transport</depend>
-  <depend>roscpp</depend>
-  <depend>roslaunch</depend>
+  <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
 
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 </package>

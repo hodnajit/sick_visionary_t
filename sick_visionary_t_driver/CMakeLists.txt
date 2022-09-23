@@ -1,46 +1,53 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(sick_visionary_t_driver)
 
-find_package(catkin REQUIRED COMPONENTS
-  cv_bridge
-  image_transport
-  roscpp
-  roslaunch
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+
+add_executable(sick_visionary_t_driver_node
+        src/node.cpp
+        src/driver.cpp
 )
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
 
-catkin_package(
-  INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp
-)
-
-### BUILD ###
 include_directories(
-  ${catkin_INCLUDE_DIRS}
-  include
+    include
 )
 
-add_executable(sick_visionary_t_driver_node src/node.cpp src/driver.cpp)
+ament_target_dependencies(sick_visionary_t_driver_node
+    rclcpp
+    image_transport
+    sensor_msgs
+)
 
 target_link_libraries(sick_visionary_t_driver_node
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBS}
+    ${OpenCV_LIBS}
 )
 
-### TEST ###
-if(CATKIN_ENABLE_TESTING)
-  roslaunch_add_file_check(launch)
-endif()
-
-### INSTALL ###
 install(TARGETS sick_visionary_t_driver_node
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        ARCHIVE DESTINATION lib/${PROJECT_NAME}
+        LIBRARY DESTINATION lib/${PROJECT_NAME}
+        RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+        DESTINATION share/${PROJECT_NAME}
 )
+
+ament_package()
