@@ -37,8 +37,8 @@
  * limitations under the License.
  *
  ****************************************************************/
- 
- #pragma once
+
+#pragma once
 
 #include <cstdlib>
 #include <iostream>
@@ -47,153 +47,142 @@
 #include <boost/signals2/signal.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <ros/console.h>	//for ROS_ERROR, ROS_INFO, ...
+#include "rclcpp/rclcpp.hpp"    //for ROS_ERROR, ROS_INFO, ...
 
 //! abstract connection handler to process incoming data (independent of protocol)
-class Any_Session
-{
+class Any_Session {
 public:
-  /// incoming data with "data" of size "size" and handler to write back ("writer")
-  typedef boost::signals2::signal<void (const char *data, const size_t size, Any_Session *writer)> SIG_ON_DATA;
-  
-  /// every session needs a data handler
-  Any_Session(SIG_ON_DATA &cb)
-    : on_data_(cb)
-  {
-  }
-  
-  virtual ~Any_Session() {}
-	
-  /// write a string to the network connection
-  virtual void write(const std::string &buffer)=0;
-  
+    /// incoming data with "data" of size "size" and handler to write back ("writer")
+    typedef boost::signals2::signal<void(const char *data, const size_t size, Any_Session *writer)> SIG_ON_DATA;
+
+    /// every session needs a data handler
+    explicit Any_Session(SIG_ON_DATA &cb)
+            : on_data_(cb) {
+    }
+
+    virtual ~Any_Session() = default;
+
+    /// write a string to the network connection
+    virtual void write(const std::string &buffer) = 0;
+
 protected:
 
-	SIG_ON_DATA &on_data_;	///< signal handler for incoming data
+    SIG_ON_DATA &on_data_;    ///< signal handler for incoming data
 };
 
 
 //! implementation connection handler for TCP
-class TCP_Session : public Any_Session
-{
+class TCP_Session : public Any_Session {
 public:
-  
-  TCP_Session(boost::asio::io_service& io_service, SIG_ON_DATA &cb)
-    : Any_Session(cb), socket_(io_service)
-  {
-  }
-  
-  virtual ~TCP_Session() {
-  }
 
-  /// getter for socket connection
-  boost::asio::ip::tcp::socket& socket()
-  {
-    return socket_;
-  }
-
-  virtual bool connect(const std::string &path, const std::string &service)
-  {
-	  boost::asio::ip::tcp::resolver resolver(socket_.get_io_service());
-	  boost::asio::ip::tcp::resolver::query query(path, service);
-	  boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-	  boost::asio::ip::tcp::resolver::iterator end;
-	  
-	  while (endpoint_iterator != end) {
-		  if(connect(*endpoint_iterator))
-			return true;
-	  }
-	  
-	  return false;
-  }
-  
-  virtual bool connect(const boost::asio::ip::tcp::resolver::endpoint_type &ep)
-  {
-    close();
-    
-    boost::system::error_code error = boost::asio::error::host_not_found;
-    socket_.connect(ep, error);
-    if (error) {
-		ROS_ERROR("connecting failed");
-      return false;//throw boost::system::system_error(error);
+    TCP_Session(boost::asio::io_service &io_service, SIG_ON_DATA &cb)
+            : Any_Session(cb), socket_(io_service) {
     }
-    
-    socket_.async_read_some(boost::asio::buffer(data_, max_length),
-        boost::bind(&TCP_Session::handle_read, this,
-          boost::asio::placeholders::error,
-          boost::asio::placeholders::bytes_transferred));
-     return true;
-  }
-  
-  virtual void close() {
-    if(socket_.is_open()) socket_.close();
-    boost::mutex::scoped_lock lock(mtx_);
-  }
-  
+
+    ~TCP_Session() override = default;
+
+    /// getter for socket connection
+    boost::asio::ip::tcp::socket &socket() {
+        return socket_;
+    }
+
+    virtual bool connect(const std::string &path, const std::string &service) {
+        boost::asio::ip::tcp::resolver resolver(socket_.get_io_service());
+        boost::asio::ip::tcp::resolver::query query(path, service);
+        boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+        boost::asio::ip::tcp::resolver::iterator end;
+
+        while (endpoint_iterator != end) {
+            if (connect(*endpoint_iterator))
+                return true;
+        }
+
+        return false;
+    }
+
+    virtual bool connect(const boost::asio::ip::tcp::resolver::endpoint_type &ep) {
+        close();
+
+        boost::system::error_code error = boost::asio::error::host_not_found;
+        socket_.connect(ep, error);
+        if (error) {
+            ROS_ERROR("connecting failed");
+            return false;//throw boost::system::system_error(error);
+        }
+
+        socket_.async_read_some(boost::asio::buffer(data_, max_length),
+                                boost::bind(&TCP_Session::handle_read, this,
+                                            boost::asio::placeholders::error,
+                                            boost::asio::placeholders::bytes_transferred));
+        return true;
+    }
+
+    virtual void close() {
+        if (socket_.is_open()) socket_.close();
+        boost::mutex::scoped_lock lock(mtx_);
+    }
+
 protected:
-	
-	/// write async. to TCP socket (implement abstract)
-	virtual void write(const std::string &buffer) {
-      boost::asio::async_write(socket_,
-          boost::asio::buffer( buffer ),
-          boost::bind(&TCP_Session::handle_write, this,
-            boost::asio::placeholders::error));
-	}
-	virtual void write(const std::vector<char> &buffer) {
-      boost::asio::async_write(socket_,
-          boost::asio::buffer( buffer ),
-          boost::bind(&TCP_Session::handle_write, this,
-            boost::asio::placeholders::error));
-	}
-	
-	/// write async. to TCP socket
-	virtual void write(const boost::asio::mutable_buffers_1 &buffer) {
-      boost::asio::async_write(socket_,
-          buffer,
-          boost::bind(&TCP_Session::handle_write, this,
-            boost::asio::placeholders::error));
-	}
+
+    /// write async. to TCP socket (implement abstract)
+    virtual void write(const std::string &buffer) {
+        boost::asio::async_write(socket_,
+                                 boost::asio::buffer(buffer),
+                                 boost::bind(&TCP_Session::handle_write, this,
+                                             boost::asio::placeholders::error));
+    }
+
+    virtual void write(const std::vector<char> &buffer) {
+        boost::asio::async_write(socket_,
+                                 boost::asio::buffer(buffer),
+                                 boost::bind(&TCP_Session::handle_write, this,
+                                             boost::asio::placeholders::error));
+    }
+
+    /// write async. to TCP socket
+    virtual void write(const boost::asio::mutable_buffers_1 &buffer) {
+        boost::asio::async_write(socket_,
+                                 buffer,
+                                 boost::bind(&TCP_Session::handle_write, this,
+                                             boost::asio::placeholders::error));
+    }
 
 private:
 
-  /// called on incoming data --> decides if an error occured or calls handler
-  void handle_read(const boost::system::error_code& error,
-      size_t bytes_transferred)
-  {
-    //boost::mutex::scoped_lock lock(mtx_);
-      
-      if (!error)
-    {
-		on_data_(data_, bytes_transferred, this);
-    }
-    else
-    {
-		ROS_ERROR("error while reading from socket");
-      delete this;
-    }
-    
-    if(socket_.is_open())
-		socket_.async_read_some(boost::asio::buffer(data_, max_length),
-			boost::bind(&TCP_Session::handle_read, this,
-			  boost::asio::placeholders::error,
-			  boost::asio::placeholders::bytes_transferred));
-  }
+    /// called on incoming data --> decides if an error occured or calls handler
+    void handle_read(const boost::system::error_code &error,
+                     size_t bytes_transferred) {
+        //boost::mutex::scoped_lock lock(mtx_);
 
-  /// called if data is written (error handling)
-  void handle_write(const boost::system::error_code& error)
-  {
-    //boost::mutex::scoped_lock lock(mtx_);
-    
-    if (error)
-    {
-		ROS_ERROR("error while writing to socket");
-      delete this;
+        if (!error) {
+            on_data_(data_, bytes_transferred, this);
+        } else {
+            ROS_ERROR("error while reading from socket");
+            delete this;
+        }
+
+        if (socket_.is_open())
+            socket_.async_read_some(boost::asio::buffer(data_, max_length),
+                                    boost::bind(&TCP_Session::handle_read, this,
+                                                boost::asio::placeholders::error,
+                                                boost::asio::placeholders::bytes_transferred));
     }
-  }
+
+    /// called if data is written (error handling)
+    void handle_write(const boost::system::error_code &error) {
+        //boost::mutex::scoped_lock lock(mtx_);
+
+        if (error) {
+            ROS_ERROR("error while writing to socket");
+            delete this;
+        }
+    }
 
 protected:
-  boost::asio::ip::tcp::socket socket_;	///< TCP socket
-  enum { max_length = 4096 };	///< max length of incoming data (shoul be enough?)
-  char data_[max_length];		///< data buffer of max. length
-  boost::mutex mtx_;			///< lock operations
+    boost::asio::ip::tcp::socket socket_;    ///< TCP socket
+    enum {
+        max_length = 4096
+    };    ///< max length of incoming data (shoul be enough?)
+    char data_[max_length]{};        ///< data buffer of max. length
+    boost::mutex mtx_;            ///< lock operations
 };
