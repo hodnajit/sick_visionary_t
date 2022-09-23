@@ -127,10 +127,10 @@ public:
 		const uint32_t pkglength = ntohl( *(uint32_t*)(data+4) );
 		const uint16_t protocolVersion = ntohs( *(uint16_t*)(data+8) );
 		const uint8_t packetType = *(uint8_t*)(data+10);
-		
-        ROS_ASSERT( magicword == 0x02020202 );
-        ROS_ASSERT( protocolVersion == 1 );
-        ROS_ASSERT( packetType == 98 );
+
+        rcpputils::assert_true( magicword == 0x02020202 );
+        rcpputils::assert_true( protocolVersion == 1 );
+        rcpputils::assert_true( packetType == 98 );
         
         if( magicword != 0x02020202 || protocolVersion != 1 || packetType != 98 )
 			return false;
@@ -139,8 +139,8 @@ public:
         // the number of segments (should be 3)       
 		const uint16_t id = ntohs( *(uint16_t*)(data+11) );
 		const uint16_t numSegments = ntohs( *(uint16_t*)(data+13) );
-        ROS_ASSERT( id == 1 );
-        ROS_ASSERT( numSegments == 3 );
+        rcpputils::assert_true( id == 1 );
+        rcpputils::assert_true( numSegments == 3 );
         
         // offset and changedCounter, 4 bytes each per segment
         uint32_t offset[numSegments];
@@ -167,9 +167,9 @@ public:
 
         // extracting data from the binary segment (distance, intensity
         // and confidence).
-        ROS_ASSERT(numBytesPerDistanceValue_==2);
-        ROS_ASSERT(numBytesPerIntensityValue_==2);
-        ROS_ASSERT(numBytesPerConfidenceValue_==2);
+        rcpputils::assert_true(numBytesPerDistanceValue_==2);
+        rcpputils::assert_true(numBytesPerIntensityValue_==2);
+        rcpputils::assert_true(numBytesPerConfidenceValue_==2);
         
         distance_   = cv::Mat(cameraParams_.height, cameraParams_.width, CV_16UC1);
         intensity_  = cv::Mat(cameraParams_.height, cameraParams_.width, CV_16UC1);
@@ -190,7 +190,7 @@ private:
 		try {
 			boost::property_tree::xml_parser::read_xml(ss, pt);
 		} catch(...) {
-			ROS_ERROR("failed to parse response (XML malformed)\ncontent: %s", xmlString.c_str());
+			RCLCPP_ERROR(get_logger(), "failed to parse response (XML malformed)\ncontent: %s", xmlString.c_str());
 			return false;
 		}
 		
@@ -204,7 +204,7 @@ private:
 				cameraParams_.cam2worldMatrix[i] = item.second.get_value<double>();
 			++i;
 		}
-		ROS_ASSERT(i==16);
+		rcpputils::assert_true(i==16);
 		
 		cameraParams_.fx = ds.get<double>("CameraMatrix.FX");
 		cameraParams_.fy = ds.get<double>("CameraMatrix.FY");
@@ -222,21 +222,21 @@ private:
         data_type=ds.get<std::string>("Distance", "");
         boost::algorithm::to_lower(data_type);
         if(data_type != "") {
-            ROS_ASSERT(data_type == "uint16");
+            rcpputils::assert_true(data_type == "uint16");
             numBytesPerDistanceValue_ = 2;
         }
         
         data_type=ds.get<std::string>("Intensity", "");
         boost::algorithm::to_lower(data_type);
         if(data_type != "") {
-            ROS_ASSERT(data_type == "uint16");
+            rcpputils::assert_true(data_type == "uint16");
             numBytesPerIntensityValue_ = 2;
         }
         
         data_type=ds.get<std::string>("Confidence", "");
         boost::algorithm::to_lower(data_type);
         if(data_type != "") {
-            ROS_ASSERT(data_type == "uint16");
+            rcpputils::assert_true(data_type == "uint16");
             numBytesPerConfidenceValue_ = 2;
         }
             
@@ -244,9 +244,9 @@ private:
 	}
     
     void getData(const char *data, const size_t size) {
-        ROS_ASSERT(size>=14);
+        rcpputils::assert_true(size>=14);
         if(size<14) {
-            ROS_WARN("malformed data (1): %d<14", (int)size);
+            RCLCPP_WARN("malformed data (1): %d<14", (int)size);
             return;
         }
         const size_t numBytesDistance   = (numBytesPerDistanceValue_ > 0) ? distance_.total()*numBytesPerDistanceValue_ : 0;
@@ -263,7 +263,7 @@ private:
         offset += 14; //calcsize('>IQH')
 
         if(length>size) {
-            ROS_WARN("malformed data (2): %d>%d", (int)length, (int)size);
+            RCLCPP_WARN(get_logger(), "malformed data (2): %d>%d", (int)length, (int)size);
             return;
         }
 
@@ -282,7 +282,7 @@ private:
         //distance = wholeBinary[0:numBytesDistance] // only the distance
                                                    // data (as string)
 
-        ROS_ASSERT(end<=size);
+        rcpputils::assert_true(end<=size);
 
         if (numBytesDistance > 0) {
             for(size_t i=0; i<distance_.total(); i++)
@@ -314,8 +314,12 @@ private:
         const uint32_t lengthCopy = __Swap4Bytes( *(uint32_t*)(data+offset + 4) );
 
         if(length != lengthCopy)
-            ROS_WARN("check failed %d!=%d", (int)length, (int)lengthCopy);
-        ROS_ASSERT(length == lengthCopy);
+            RCLCPP_WARN(get_logger(), "check failed %d!=%d", (int)length, (int)lengthCopy);
+        rcpputils::assert_true(length == lengthCopy);
+    }
+
+    static rclcpp::Logger get_logger() {
+        return rclcpp::get_logger("Data");
     }
 
 };
