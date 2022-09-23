@@ -45,7 +45,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
-#include <ros/assert.h>
+#include "rcpputils/asserts.hpp"
 
 //for 64bit
 #if defined(__linux__)
