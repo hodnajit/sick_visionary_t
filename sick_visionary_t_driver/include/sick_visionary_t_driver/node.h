@@ -1,4 +1,4 @@
-
+#include <chrono>
 #include <boost/thread.hpp>
 
 #include "cv_bridge/cv_bridge.h"
@@ -8,6 +8,8 @@
 #include "sensor_msgs/msg/camera_info.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "std_msgs/msg/byte_multi_array.hpp"
+
+#include "sick_visionary_t_driver/driver.h"
 
 class DriverNode : public rclcpp::Node {
 public:
@@ -20,13 +22,9 @@ private:
 
     void on_frame(const boost::shared_ptr<Driver_3DCS::Data> &data);
 
-    void publish_frame(const Driver_3DCS::Data &data);
+    void on_new_subscriber();
 
-    void _on_new_subscriber();
-
-    void on_new_subscriber_ros(const ros::SingleSubscriberPublisher& pub);
-
-    void on_new_subscriber_it(const image_transport::SingleSubscriberPublisher& pub);
+    void timer_callback();
 
 /// Flag whether invalid points are to be replaced by NaN
     const bool SUPPRESS_INVALID_POINTS = true;
@@ -40,14 +38,16 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr g_pub_points;
     rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr g_pub_ios;
 
-    Driver_3DCS::Control *g_control = NULL;
+    Driver_3DCS::Control *g_control = nullptr;
 
     std::string g_frame_id;
 
 /// If true: prevents skipping of frames and publish everything, otherwise use newest data to publish to ROS world
-    bool g_publish_all = false;
+    bool g_publish_all;
 
     boost::mutex g_mtx_data;
     boost::shared_ptr <Driver_3DCS::Data> g_data;
+
+    rclcpp::TimerBase::SharedPtr timer_;
 
 };

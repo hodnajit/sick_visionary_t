@@ -12,6 +12,7 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 add_executable(sick_visionary_t_driver_node
+        src/main.cpp
         src/node.cpp
         src/driver.cpp
 )
@@ -31,8 +32,9 @@ include_directories(
 )
 
 ament_target_dependencies(sick_visionary_t_driver_node
-    rclcpp
+    cv_bridge
     image_transport
+    rclcpp
     sensor_msgs
 )
 
