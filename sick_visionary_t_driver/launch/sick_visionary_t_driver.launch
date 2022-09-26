@@ -3,9 +3,12 @@
 
   <arg name="camera" default="sick_visionary_t_driver" />
 
-  <node pkg="sick_visionary_t_driver" type="sick_visionary_t_driver_node" name="$(arg camera)" output="screen" >
+  <node pkg="sick_visionary_t_driver" exec="sick_visionary_t_driver_node" name="$(arg camera)" output="screen" >
     <!-- IP address if the Visionary-T device, default: 192.168.1.10 -->
     <param name="remote_device_ip" value="192.168.1.10" />
+    <!-- for control channel (sopas) the port is 2112, for streaming channel it is 2113-->
+    <param name="remote_device_port_control" value="2112" />
+    <param name="remote_device_port_streaming" value="2113" />
 
     <param name="frame_id" value="camera" />
   </node>
