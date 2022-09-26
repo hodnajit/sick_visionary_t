@@ -86,6 +86,16 @@ public:
         return socket_;
     }
 
+    virtual bool connect(const std::string &address, const unsigned short &port) {
+        boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(address), port);
+
+        if (connect(ep)) {
+            return true;
+        }
+
+        return false;
+    }
+
     virtual bool connect(const std::string &path, const std::string &service) {
         boost::asio::ip::tcp::resolver resolver(socket_.get_executor());
         boost::asio::ip::tcp::resolver::query query(path, service);
@@ -93,7 +103,7 @@ public:
         boost::asio::ip::tcp::resolver::iterator end;
 
         while (endpoint_iterator != end) {
-            if (connect(*endpoint_iterator))
+            if (connect(*endpoint_iterator++))
                 return true;
         }
 

@@ -15,10 +15,15 @@ DriverNode::DriverNode() : Node("driver_3DCS") {
     g_frame_id = declare_parameter<std::string>("frame_id", "camera");
     g_publish_all = declare_parameter<bool>("prevent_frame_skipping", false);
 
+    std::string remote_device_port_control = declare_parameter<std::string>("remote_device_port_control", "2112");
+    std::string remote_device_port_streaming = declare_parameter<std::string>("remote_device_port_streaming", "2113");
+
+
+
     bool r;
     boost::asio::io_service io_service;
 
-    Driver_3DCS::Control control(io_service, remote_device_ip);
+    Driver_3DCS::Control control(io_service, remote_device_ip, remote_device_port_control);
     r = control.open();
     rcpputils::assert_true(r);
     r = control.initStream();
@@ -26,7 +31,7 @@ DriverNode::DriverNode() : Node("driver_3DCS") {
 
     boost::thread thr(boost::bind(&boost::asio::io_service::run, &io_service));
 
-    Driver_3DCS::Streaming device(io_service, remote_device_ip);
+    Driver_3DCS::Streaming device(io_service, remote_device_ip, remote_device_port_streaming);
     device.getSignal().connect(boost::bind(&DriverNode::on_frame, this, _1));
 
     r = device.openStream();

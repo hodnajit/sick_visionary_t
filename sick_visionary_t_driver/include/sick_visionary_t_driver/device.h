@@ -74,6 +74,7 @@ public:
 class Control : public TCP_Session {
     Any_Session::SIG_ON_DATA on_data_;        ///< signal handler for incoming data
     const std::string remote_device_ip_;
+    const std::string remote_device_port_;
     bool stream_started_;
 
     void on_data(const char *data, const size_t size, Any_Session *writer) {
@@ -81,9 +82,11 @@ class Control : public TCP_Session {
     }
 
 public:
-    Control(boost::asio::io_service &io_service, const std::string &remote_device_ip) :
+    Control(boost::asio::io_service &io_service, const std::string &remote_device_ip,
+            const std::string &remote_device_port) :
             TCP_Session(io_service, on_data_),
             remote_device_ip_(remote_device_ip),
+            remote_device_port_(remote_device_port),
             stream_started_(false) {
         on_data_.connect(boost::bind(&Control::on_data, this, _1, _2, _3));
     }
@@ -92,8 +95,9 @@ public:
     bool open() {
         RCLCPP_DEBUG(get_logger(), "Connecting to device...");
 
-        if (!connect(remote_device_ip_, "2112")) {
-            RCLCPP_ERROR(get_logger(), "Error on connecting to %s", remote_device_ip_.c_str());
+        if (!connect(remote_device_ip_, remote_device_port_)) {
+            RCLCPP_ERROR(get_logger(), "Error on connecting to %s:%s", remote_device_ip_.c_str(),
+                         remote_device_port_.c_str());
             return false;
         }
 
@@ -167,6 +171,7 @@ private:
     }
 
     const std::string remote_device_ip_;
+    const std::string remote_device_port_;
     Any_Session::SIG_ON_DATA on_data_;        ///< signal handler for incoming data
     SIG_ON_FRAME on_frame_;
     bool debugOutput_;
@@ -174,9 +179,11 @@ private:
 
 public:
 
-    Streaming(boost::asio::io_service &io_service, const std::string &remote_device_ip) :
+    Streaming(boost::asio::io_service &io_service, const std::string &remote_device_ip,
+              const std::string &remote_device_port) :
             TCP_Session(io_service, on_data_),
             remote_device_ip_(remote_device_ip),
+            remote_device_port_(remote_device_port),
             debugOutput_(false) {
         on_data_.connect(boost::bind(&Streaming::on_data, this, _1, _2, _3));
     }
@@ -190,8 +197,9 @@ public:
     /* Opens the streaming channel. */
     bool openStream() {
         RCLCPP_DEBUG(get_logger(), "Opening streaming socket...");
-        if (!connect(remote_device_ip_, "2113")) {
-            RCLCPP_DEBUG(get_logger(), "Error on connecting to %s", remote_device_ip_.c_str());
+        if (!connect(remote_device_ip_, remote_device_port_)) {
+            RCLCPP_DEBUG(get_logger(), "Error on connecting to %s:%s", remote_device_ip_.c_str(),
+                         remote_device_port_.c_str());
             return false;
         }
         RCLCPP_DEBUG(get_logger(), "done.");
