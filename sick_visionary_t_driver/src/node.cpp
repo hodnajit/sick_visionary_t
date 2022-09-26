@@ -2,9 +2,12 @@
 
 #include "rcpputils/asserts.hpp"
 #include <boost/asio.hpp>
+#include <boost/bind/bind.hpp>
 
 #include "sensor_msgs/msg/image.hpp"
 #include "std_msgs/msg/header.hpp"
+
+using namespace boost::placeholders;
 
 DriverNode::DriverNode() : Node("driver_3DCS") {
 
@@ -43,7 +46,7 @@ DriverNode::DriverNode() : Node("driver_3DCS") {
     // workaround, since "on_new_subscriber" functionality is not implemented in ros2 yet
     // -> instead, check for number of subscribers until somebody connects
     using namespace std::chrono_literals;
-    timer_ = this->create_wall_timer(500ms, std::bind(&DriverNode::timer_callback, this));
+    this->create_wall_timer(500ms, std::bind(&DriverNode::timer_callback, this));
 }
 
 void DriverNode::thr_publish_frame() {

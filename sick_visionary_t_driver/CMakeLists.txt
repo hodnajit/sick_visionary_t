@@ -40,6 +40,7 @@ ament_target_dependencies(sick_visionary_t_driver_node
 
 target_link_libraries(sick_visionary_t_driver_node
     ${OpenCV_LIBS}
+    -lpthread -lboost_thread
 )
 
 install(TARGETS sick_visionary_t_driver_node

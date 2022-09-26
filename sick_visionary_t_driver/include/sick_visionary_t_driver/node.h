@@ -48,6 +48,4 @@ private:
     boost::mutex g_mtx_data;
     boost::shared_ptr <Driver_3DCS::Data> g_data;
 
-    rclcpp::TimerBase::SharedPtr timer_;
-
 };
