@@ -34,14 +34,14 @@ DriverNode::DriverNode() : Node("driver_3DCS") {
 
     g_control = &control;
 
-    image_transport::ImageTransport it(std::shared_ptr<DriverNode>(this));
-    g_pub_depth = it.advertise("depth", 1);
-    g_pub_confidence = it.advertise("confidence", 1);
-    g_pub_intensity = it.advertise("intensity", 1);
+    g_pub_depth = image_transport::create_publisher(this, "depth", rmw_qos_profile_default);
+    g_pub_confidence = image_transport::create_publisher(this, "confidence", rmw_qos_profile_default);
+    g_pub_intensity = image_transport::create_publisher(this, "intensity", rmw_qos_profile_default);
 
-    g_pub_points = this->create_publisher<sensor_msgs::msg::PointCloud2>("points", 2);
-    g_pub_camera_info = this->create_publisher<sensor_msgs::msg::CameraInfo>("camera_info", 1);
-    g_pub_ios = this->create_publisher<std_msgs::msg::ByteMultiArray>("ios", 1);
+    auto quality_of_service = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_default));
+    g_pub_points = this->create_publisher<sensor_msgs::msg::PointCloud2>("points", quality_of_service);
+    g_pub_camera_info = this->create_publisher<sensor_msgs::msg::CameraInfo>("camera_info", quality_of_service);
+    g_pub_ios = this->create_publisher<std_msgs::msg::ByteMultiArray>("ios", quality_of_service);
 
     // workaround, since "on_new_subscriber" functionality is not implemented in ros2 yet
     // -> instead, check for number of subscribers until somebody connects

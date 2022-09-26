@@ -38,7 +38,7 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr g_pub_points;
     rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr g_pub_ios;
 
-    Driver_3DCS::Control *g_control = nullptr;
+    Driver_3DCS::Control *g_control;
 
     std::string g_frame_id;
 
