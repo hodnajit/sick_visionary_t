@@ -87,8 +87,7 @@ public:
     }
 
     virtual bool connect(const std::string &path, const std::string &service) {
-        boost::asio::io_service io_service;
-        boost::asio::ip::tcp::resolver resolver(io_service);
+        boost::asio::ip::tcp::resolver resolver(socket_.get_executor());
         boost::asio::ip::tcp::resolver::query query(path, service);
         boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
         boost::asio::ip::tcp::resolver::iterator end;
