@@ -148,7 +148,7 @@ public:
 
 private:
     static rclcpp::Logger get_logger() {
-        return rclcpp::get_logger("Streaming");
+        return rclcpp::get_logger("Control");
     }
 };
 
